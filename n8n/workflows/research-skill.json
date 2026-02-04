@@ -1,0 +1,104 @@
+{
+  "name": "Research Skill - Web Scraper",
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        250,
+        300
+      ],
+      "parameters": {
+        "path": "research",
+        "responseMode": "responseNode"
+      }
+    },
+    {
+      "id": "fetch",
+      "name": "Fetch URL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        450,
+        300
+      ],
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "extract",
+      "name": "Extract Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        650,
+        300
+      ],
+      "parameters": {
+        "code": "const html = $input.all()[0].json.body || '';\nconst title = html.match(/<title>(.*?)<\\/title>/)?.[1] || 'No title';\nconst text = html.replace(/<[^>]*>/g, '').substring(0, 5000);\nreturn [{json: {url: $json.url, title, content: text}}];"
+      }
+    },
+    {
+      "id": "qdrant",
+      "name": "Store in Qdrant",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        850,
+        300
+      ],
+      "parameters": {
+        "url": "http://qdrant:6333/collections/supermemory/points",
+        "method": "PUT",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "points",
+              "value": "={{ [{\"id\": $now.toMillis(), \"vector\": [], \"payload\": $json}] }}"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Fetch URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch URL": {
+      "main": [
+        [
+          {
+            "node": "Extract Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Content": {
+      "main": [
+        [
+          {
+            "node": "Store in Qdrant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
