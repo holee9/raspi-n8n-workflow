@@ -1,55 +1,66 @@
 # PROTOCOL ZERO: Autonomous Hybrid AI Architect on Raspberry Pi 5
 
-A self-sustaining, cost-optimized AI automation ecosystem running on Raspberry Pi 5.
+## IMPORTANT: Work Process Rules
+
+**BEFORE starting any work, you MUST:**
+1. Read memory/WORK_PROCESS_RULES.md
+2. Check memory/errors.log for past errors
+3. Check memory/solutions.md for known solutions
+4. Check memory/current-task.md to resume interrupted work
+
+See memory/WORK_PROCESS_RULES.md for complete process.
+
+---
 
 ## Overview
 
-This project implements a hybrid AI system that intelligently routes tasks between:
-- **Ollama** (Local Llama 3.1 - Free, Fast)
-- **Claude API** (Cloud-based - High Quality, Metered)
+A self-sustaining, cost-optimized AI automation ecosystem on Raspberry Pi 5.
 
-The system orchestrates workflows through **n8n** and maintains persistent memory via **Qdrant** vector database.
+### Architecture
 
-## Hardware Requirements
+```
+User Request -> n8n Orchestrator -> [Ollama (Free) | Claude API (Paid)] -> Qdrant (Memory)
+```
 
-- **Platform**: Raspberry Pi 5 (16GB RAM recommended)
-- **Architecture**: ARM64 (aarch64)
-- **Storage**: 32GB+ microSD or SSD
+### Hybrid Routing
+
+| Complexity | Destination |
+|------------|-------------|
+| < 5 | Ollama (Free) |
+| > 8 | Claude API (Paid) |
 
 ## Quick Start
 
-### 1. Clone and Bootstrap
-
 ```bash
+# Clone
 git clone https://github.com/holee9/raspi-n8n-workflow.git
 cd raspi-n8n-workflow
+
+# Bootstrap (RPi5)
 ./scripts/bootstrap.sh
-```
 
-### 2. Start Services
-
-```bash
-source ~/.config/protocol-zero/.env
+# Start services
 docker-compose up -d
-```
 
-### 3. Pull Models
-
-```bash
+# Pull models
 ./scripts/pull-models.sh
 ```
 
-### 4. Initialize Memory
+## Project Structure
 
-```bash
-python3 scripts/init-qdrant.py
 ```
-
-### 5. Access Services
-
-- n8n UI: http://localhost:5678
-- Ollama API: http://localhost:11434
-- Qdrant Dashboard: http://localhost:6333/dashboard
+raspi-n8n-workflow/
+├── memory/                 # ERROR TRACKING - READ FIRST!
+│   ├── WORK_PROCESS_RULES.md   # MANDATORY pre-work check
+│   ├── errors.log              # All errors with solutions
+│   ├── solutions.md            # Known solutions
+│   └── current-task.md         # Resume interrupted work
+├── scripts/                # Implementation scripts
+├── n8n/workflows/          # n8n workflow templates
+├── docker-compose.yml      # Container orchestration
+├── README.md               # This file
+└── DEPLOYMENT.md           # Deployment guide
+```
 
 ## Scripts Reference
 
@@ -61,29 +72,15 @@ python3 scripts/init-qdrant.py
 | pull-models.sh | Pull Ollama models |
 | status.sh | System health check |
 
-### bridge.py Commands
+## Services
 
-```bash
-# Health check
-python3 scripts/bridge.py health
-
-# List workflows
-python3 scripts/bridge.py list
-
-# Import workflow
-python3 scripts/bridge.py import -f n8n/workflows/master-router.json
-```
-
-## Hybrid Routing Logic
-
-| Complexity | Task Type | Destination |
-|------------|-----------|-------------|
-| < 5 | simple | Ollama (Free) |
-| > 8 | complex | Claude API (Metered) |
+- n8n UI: http://localhost:5678
+- Ollama API: http://localhost:11434
+- Qdrant Dashboard: http://localhost:6333/dashboard
 
 ## Troubleshooting
 
-Check `memory/solutions.md` for common issues and solutions.
+See memory/solutions.md for common issues and solutions.
 
 ## License
 
